@@ -1,5 +1,6 @@
 const mongoose= require("mongoose")
 const bcrypt= require("bcrypt")
+const dotenv= require("dotenv").config()
 const userShema= new mongoose.Schema({
     firstname: {
         type: String,
@@ -46,7 +47,7 @@ const userShema= new mongoose.Schema({
 userShema.pre("save", async function next(){
     const user=this
     if(user.isDirectModified('password')){
-        user.password= await bcrypt.hash(user.password, 10)
+        user.password= await bcrypt.hash(user.password, process.env.SALT_NUMBER)
     }
 })
 

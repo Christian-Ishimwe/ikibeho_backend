@@ -103,7 +103,20 @@ const deactivateAdmin= async(req, res)=>{
 }
 
 const changePassword= async(req,res)=>{
-
+    const {password, confirmpassword}=req.body
+    if(password!=confirmpassword){
+        return res.status(400).json({message: "password must match"})
+    }
+    try{
+        const user_id= req.user.id
+        const hashedPassword = await bcrypt.hash(password, process.env.SALT_NUMBER);
+        const user= await User.findByIdAndUpdate(user_id, {password:hashedPassword})
+        await user.save()
+        return res.status(201).json({message: "password updated successful"})
+    }catch(err){
+        console.log(err)
+        return res.status(500).json({message: "Internal server error"})
+    }
 }
 
 
