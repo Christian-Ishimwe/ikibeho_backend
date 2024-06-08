@@ -5,6 +5,7 @@ const morgan= require("morgan")
 const bodyParser= require("body-parser")
 const PORT= process.env.PORT || 8000
 const userRouter= require("./routes/userRoutes")
+const contactRoute= require("./routes/contactsRouter")
 const dbConfig= require("./config/dbConfig")
 app.use(morgan('tiny'))
 app.use(bodyParser.json({extwended: true}))
@@ -13,6 +14,7 @@ app.get('/', function (req, res) {
 })
 
 app.use("/api/user", userRouter)
+app.use("/api/contacts", contactRoute)
 app.use((req,res)=>{
   res.send("Not Content Found")
 })
