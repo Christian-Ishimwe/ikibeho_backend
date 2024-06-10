@@ -39,7 +39,7 @@ const loginUser= async(req, res)=>{
             return res.status(200).json({message: "User signed in",
              email: user.email, token, role:user.role})
         }
-        return res.status(404).json({message: "Invalid credentials"})
+        return res.status(404).json({message: "Invalid Email or password"})
     }catch(err){
         console.log(err)
         return res.status(500).json({message: "Internal Server error"})
