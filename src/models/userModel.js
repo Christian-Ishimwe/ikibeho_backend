@@ -44,12 +44,7 @@ const userShema= new mongoose.Schema({
     }
 })
 
-userShema.pre("save", async function next(){
-    const user=this
-    if(user.isDirectModified('password')){
-        user.password= await bcrypt.hash(user.password, process.env.SALT_NUMBER)
-    }
-})
+
 
 const  User= mongoose.model("User", userShema)
 

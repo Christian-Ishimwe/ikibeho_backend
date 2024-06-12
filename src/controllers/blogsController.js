@@ -6,7 +6,8 @@ const homeBlog=async(req,res)=>{
 
 const addBlog=async(req,res)=>{
     try{
-        const {title,summary,content}= req.body
+        const {title,content}= req.body
+        console.log(req.body)
         const imagePaths = req.files.map(file => file.path);
         const imageUrls = [];
         for (const path of imagePaths) {
@@ -38,6 +39,8 @@ const getBlogs=async(req,res)=>{
         console.log(err)
         return res.status(500).json({message:"internal server error"})
     }
+
+    
 }
 
 
