@@ -8,6 +8,7 @@ const PORT= process.env.PORT || 8000
 const userRouter= require("./routes/userRoutes")
 const contactRoute= require("./routes/contactsRouter")
 const blogsRoute= require("./routes/blogsRoute")
+const donationRoute = require("./routes/donationRoute")
 const dbConfig= require("./config/dbConfig")
 app.use(cors());
 app.use(morgan('tiny'))
@@ -19,6 +20,7 @@ app.get('/', function (req, res) {
 app.use("/api/user", userRouter)
 app.use("/api/contacts", contactRoute)
 app.use("/api/blogs", blogsRoute)
+app.use("/api/donations", donationRoute)
 app.use((req,res)=>{
   res.send("Not Content Found")
 })
