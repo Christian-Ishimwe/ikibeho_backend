@@ -3,9 +3,11 @@ const bcrypt= require("bcrypt")
 const User= require("../models/userModel")
 const jwt= require("jsonwebtoken")
 const dotenv= require("dotenv").config()
+const Blog= require("../models/blogsModel")
 const homeAdmin=(req, res)=>{
     return res.status(200).json({message: "Admin Dashboard"})
 }
+
 const registerUser = async (req, res) => {    
     try {
         const { email, phone } = req.body;
@@ -37,27 +39,34 @@ const registerUser = async (req, res) => {
 };
 
 
-const loginUser= async(req, res)=>{
-    const {email, password}= req.body
-    if( !email || !password){
-        return res.status(401).json({message: "email and password required"})
+const loginUser = async (req, res) => {
+    const { email, password } = req.body;
+    if (!email || !password) {
+        return res.status(401).json({ message: "Email and password required" });
     }
-    try{
-        const user= await User.findOne({email})
-        if(user && bcrypt.compareSync(password, user.password)){
-            if(!user.active){
-                return res.status(401).json({message:  "Account Disabled!"})
+    try {
+        const user = await User.findOne({ email });
+        if (user && bcrypt.compareSync(password, user.password)) {
+            if (!user.active) {
+                return res.status(401).json({ message: "Account Disabled!" });
             }
-            const token = jwt.sign({id: user._id, role: user.role},process.env.SECRET_KEY, { expiresIn : "2d"})
-            return res.status(200).json({message: "User signed in",
-             email: user.email, token, role:user.role, id: user._id})
+            const token = jwt.sign({ id: user._id, role: user.role }, process.env.SECRET_KEY, { expiresIn: "2d" });
+            return res.status(200).json({
+                message: "User signed in",
+                email: user.email,
+                token,
+                role: user.role,
+                username: user.firstname,
+                id: user._id
+            });
         }
-        return res.status(404).json({message: "Invalid Email or password"})
-    }catch(err){
-        console.log(err)
-        return res.status(500).json({message: "Internal Server error"})
+        return res.status(404).json({ message: "Invalid Email or password" });
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({ message: "Internal Server error" });
     }
-}
+};
+
 
 const getAllUsers= async (req,res)=>{
     try{
@@ -70,16 +79,27 @@ const getAllUsers= async (req,res)=>{
     }
 }
 
-const userProfile=async(req, res)=>{
-    try{
-        const user_id= req.user.id
-        const user= await User.findById(user_id)
-        return res.status(200).json(user)
-    }catch(err){
-        console.log(err)
-        return res.status(500).json({message: "Internal server error!"})
+const userProfile = async (req, res) => {
+    try {
+        const user_id = req.user.id;
+        const user = await User.findById(user_id).exec();
+        const blogCount = await Blog.countDocuments({ author: user_id });
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        res.status(200).json({
+            name: `${user.firstname} ${user.lastname}`,
+            email: user.email,
+            phone: user.phone,
+            blogCount: blogCount
+        });
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ message: "Internal server error!" });
     }
-}
+};
 
 const activateAdmin=async(req,res)=>{
     const user_id= req.params.id
@@ -116,13 +136,12 @@ const deactivateAdmin= async(req, res)=>{
 }
 
 const changePassword= async(req,res)=>{
-    const {password, confirmpassword}=req.body
-    if(password!=confirmpassword){
-        return res.status(400).json({message: "password must match"})
-    }
+    const {new_password}=req.body
     try{
         const user_id= req.user.id
-        const hashedPassword = await bcrypt.hash(password, process.env.SALT_NUMBER);
+        const saltRounds = parseInt(process.env.SALT_NUMBER, 10);
+
+        const hashedPassword = await bcrypt.hash(new_password, saltRounds);
         const user= await User.findByIdAndUpdate(user_id, {password:hashedPassword})
         await user.save()
         return res.status(201).json({message: "password updated successful"})
@@ -130,6 +149,15 @@ const changePassword= async(req,res)=>{
         console.log(err)
         return res.status(500).json({message: "Internal server error"})
     }
+}
+
+const update_phone=async (req, res) => {
+  const { phone } = req.body;
+  const userId = req.user.id;
+    const user= await User.findByIdAndUpdate(userId, {phone:phone})
+ 
+
+  res.json({ message: 'Phone number updated successfully' });
 }
 
 const deleteUser= async (req,res)=>{
@@ -148,4 +176,4 @@ const deleteUser= async (req,res)=>{
 module.exports={homeAdmin, registerUser,
      loginUser,userProfile, activateAdmin, deactivateAdmin,
         changePassword, getAllUsers,
-    deleteUser}
+    deleteUser,update_phone}
