@@ -55,6 +55,7 @@ const createDonation = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
 const getAllDonations = async (req, res) => {
   try {
     const donations = await Donation.find();
@@ -98,6 +99,7 @@ const getDonationById = async (req, res) => {
   }
 };
 
+
 const deleteDonation = async (req, res) => {
   try {
     const { id } = req.params;
@@ -110,29 +112,34 @@ const deleteDonation = async (req, res) => {
     res.status(200).json({ message: 'Donation deleted successfully', deletedDonation });
   } catch (error) {
     console.error('Error deleting donation:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
+
+
+
+
+
 const updateDonation = async (req, res) => {
+  const { id } = req.params;
+  const { details, type, delivered } = req.body;
+
   try {
-    const { id } = req.params;
-    const { delivered } = req.body;
+    const donation = await Donation.findById(id);
 
-    const updatedDonation = await Donation.findByIdAndUpdate(
-      id,
-      { delivered },
-      { new: true }
-    );
-
-    if (!updatedDonation) {
+    if (!donation) {
       return res.status(404).json({ message: 'Donation not found' });
     }
+    donation.type = type;
+    donation.delivered = delivered;
 
-    res.status(200).json({ message: 'Donation updated successfully', updatedDonation });
+    await donation.save();
+
+    res.status(200).json({ message: 'Donation updated successfully', updatedDonation: donation });
   } catch (error) {
-    console.error('Error updating donation:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    console.log(error)
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
